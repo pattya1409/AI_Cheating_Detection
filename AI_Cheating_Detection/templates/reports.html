@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - AI Cheating Detection System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4"><i class="bi bi-file-earmark-text"></i> Detection Reports</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Detection Logs</h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Timestamp</th>
+                                <th>Behaviors</th>
+                                <th>Persons</th>
+                                <th>Faces</th>
+                                <th>Evidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.id }}</td>
+                                <td>{{ log.timestamp }}</td>
+                                <td>
+                                    {% set behaviors = log.behaviors|from_json %}
+                                    {% for behavior in behaviors %}
+                                        <span class="badge bg-danger me-1">{{ behavior }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>{{ log.person_count }}</td>
+                                <td>{{ log.face_count }}</td>
+                                <td>
+                                    {% if log.evidence_path %}
+                                    <a href="/evidence/{{ log.evidence_path.split('static/evidence/')[-1] if 'static/evidence/' in log.evidence_path else log.evidence_path.split('/')[-1] }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-image"></i> View
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Page {{ page }} of {{ (total / per_page)|round(0, 'ceil')|int }}</span>
+                        </li>
+                        {% if page * per_page < total %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% else %}
+                <p class="text-muted text-center py-4">No detection logs found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

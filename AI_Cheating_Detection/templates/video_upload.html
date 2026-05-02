@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+
+{% block title %}Video Upload - AI Cheating Detection{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: calc(100vh - 56px);
+        padding: 40px 20px;
+    }
+
+    /* 3D Upload Card */
+    .upload-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 30px;
+        padding: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                    0 0 100px rgba(255, 255, 255, 0.1) inset;
+        transition: all 0.4s ease;
+        transform-style: preserve-3d;
+    }
+
+    .upload-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 35px 70px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+        border: 3px dashed rgba(255, 255, 255, 0.4);
+        border-radius: 25px;
+        padding: 60px 40px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .upload-zone::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+    }
+
+    .upload-zone:hover::before {
+        left: 100%;
+    }
+
+    .upload-zone:hover {
+        border-color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.02);
+    }
+
+    .upload-zone.dragover {
+        border-color: #38ef7d;
+        background: rgba(56, 239, 125, 0.1);
+        transform: scale(1.05);
+    }
+
+    .upload-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 30px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        color: white;
+        animation: iconFloat 3s ease-in-out infinite;
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+    }
+
+    @keyframes iconFloat {
+        0%, 100% { 
+            transform: translateY(0) rotateY(0deg);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+        50% { 
+            transform: translateY(-20px) rotateY(180deg);
+            box-shadow: 0 25px 50px rgba(118, 75, 162, 0.7);
+        }
+    }
+
+    .upload-text {
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .upload-subtext {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+
+    .upload-btn {
+        padding: 15px 40px;
+        border-radius: 25px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .upload-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+    }
+
+    /* Progress Bar */
+    .progress-container {
+        display: none;
+        margin-top: 30px;
+    }
+
+    .progress-bar-custom {
+        height: 40px;
+        border-radius: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) inset;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #11998e, #38ef7d);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 30px rgba(56, 239, 125, 0.6);
+        animation: progressGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes progressGlow {
+        0%, 100% { box-shadow: 0 0 30px rgba(56, 239, 125, 0.6); }
+        50% { box-shadow: 0 0 50px rgba(17, 153, 142, 0.8); }
+    }
+
+    /* Results Card */
+    .results-card {
+        display: none;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 40px;
+        margin-top: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .results-title {
+        color: white;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        text-align: center;
+        text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .result-stat {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .result-stat:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(10px);
+    }
+
+    .result-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .result-value {
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .detection-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #ee0979;
+        transition: all 0.3s ease;
+    }
+
+    .detection-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(10px);
+    }
+
+    .detection-time {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .behavior-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 5px 15px rgba(238, 9, 121, 0.4);
+    }
+
+    .page-title {
+        color: white;
+        font-size: 42px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 15px;
+        text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        animation: titleFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes titleFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .detections-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .detections-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .detections-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .detections-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <div class="container">
+
+        <!-- HEADER -->
+        <h1 class="page-title">
+            <i class="bi bi-cloud-upload-fill"></i> Video Upload
+        </h1>
+        <p class="page-subtitle">Upload exam recordings for AI-powered cheating detection</p>
+
+        <!-- UPLOAD CARD -->
+        <div class="upload-card">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <i class="bi bi-file-earmark-play-fill"></i>
+                </div>
+                <div class="upload-text">Drop Video Here</div>
+                <div class="upload-subtext">
+                    or click to browse<br>
+                    <small>Supported formats: MP4, AVI, MOV, MKV, FLV, WMV</small>
+                </div>
+                <input type="file" id="videoInput" accept="video/*" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('videoInput').click()">
+                    <i class="bi bi-folder2-open"></i> Browse Files
+                </button>
+            </div>
+
+            <!-- PROGRESS BAR -->
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar-custom">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;">
+                        <span id="progressText">0%</span>
+                    </div>
+                </div>
+                <p style="color: white; text-align: center; margin-top: 15px; font-weight: 600;" id="statusText">
+                    Uploading video...
+                </p>
+            </div>
+        </div>
+
+        <!-- RESULTS CARD -->
+        <div class="results-card" id="resultsCard">
+            <h3 class="results-title">
+                <i class="bi bi-check-circle-fill"></i> Analysis Complete
+            </h3>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="result-stat">
+                        <div class="result-label">Total Frames</div>
+                        <div class="result-value" id="totalFrames">0</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="result-stat">
+                        <div class="result-label">Suspicious Frames</div>
+                        <div class="result-value" id="suspiciousFrames">0</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="result-stat">
+                        <div class="result-label">Risk Level</div>
+                        <div class="result-value" id="riskLevel">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="color: white; font-size: 22px; font-weight: 700; margin-bottom: 20px;">
+                <i class="bi bi-bell-fill"></i> Detected Behaviors
+            </h4>
+            <div id="behaviorsSummary" class="mb-4"></div>
+
+            <h4 style="color: white; font-size: 22px; font-weight: 700; margin-bottom: 20px;">
+                <i class="bi bi-list-ul"></i> Detection Timeline
+            </h4>
+            <div class="detections-list" id="detectionsList"></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const videoInput = document.getElementById('videoInput');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const statusText = document.getElementById('statusText');
+    const resultsCard = document.getElementById('resultsCard');
+
+    // Drag and drop handlers
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileUpload(files[0]);
+        }
+    });
+
+    videoInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileUpload(e.target.files[0]);
+        }
+    });
+
+    function handleFileUpload(file) {
+        // Validate file type
+        const validTypes = ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-matroska', 'video/x-flv', 'video/x-ms-wmv'];
+        if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|avi|mov|mkv|flv|wmv)$/i)) {
+            showAlert('Invalid file type. Please upload a video file.', 'danger');
+            return;
+        }
+
+        // Show progress
+        progressContainer.style.display = 'block';
+        resultsCard.style.display = 'none';
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('video', file);
+
+        // Simulate progress (since we can't track actual upload progress easily)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            if (progress <= 90) {
+                updateProgress(progress, 'Uploading video...');
+            }
+        }, 200);
+
+        // Upload video
+        fetch('/api/upload_video', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(progressInterval);
+            
+            if (data.status === 'success') {
+                updateProgress(100, 'Processing complete!');
+                
+                setTimeout(() => {
+                    displayResults(data.results);
+                }, 1000);
+            } else {
+                showAlert(data.message || 'Upload failed', 'danger');
+                progressContainer.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            console.error('Upload error:', error);
+            showAlert('Upload failed. Please try again.', 'danger');
+            progressContainer.style.display = 'none';
+        });
+    }
+
+    function updateProgress(percent, message) {
+        progressFill.style.width = percent + '%';
+        progressText.textContent = percent + '%';
+        statusText.textContent = message;
+    }
+
+    function displayResults(results) {
+        progressContainer.style.display = 'none';
+        resultsCard.style.display = 'block';
+
+        // Update stats
+        document.getElementById('totalFrames').textContent = results.total_frames || 0;
+        document.getElementById('suspiciousFrames').textContent = results.suspicious_frames || 0;
+        
+        const riskPercent = results.total_frames > 0 
+            ? Math.round((results.suspicious_frames / results.total_frames) * 100) 
+            : 0;
+        document.getElementById('riskLevel').textContent = riskPercent + '%';
+
+        // Display behaviors summary
+        const behaviorsSummary = document.getElementById('behaviorsSummary');
+        if (results.behaviors_summary && Object.keys(results.behaviors_summary).length > 0) {
+            behaviorsSummary.innerHTML = Object.entries(results.behaviors_summary)
+                .map(([behavior, count]) => `
+                    <div class="result-stat">
+                        <div class="result-label">${behavior}</div>
+                        <div class="result-value">${count} occurrences</div>
+                    </div>
+                `).join('');
+        } else {
+            behaviorsSummary.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle"></i><p>No suspicious behaviors detected</p></div>';
+        }
+
+        // Display detections timeline
+        const detectionsList = document.getElementById('detectionsList');
+        if (results.detections && results.detections.length > 0) {
+            detectionsList.innerHTML = results.detections.map(detection => `
+                <div class="detection-item">
+                    <div class="detection-time">
+                        <i class="bi bi-clock-fill"></i> Frame ${detection.frame_number} (${detection.timestamp})
+                    </div>
+                    <div>
+                        ${detection.behaviors.map(b => 
+                            `<span class="behavior-badge"><i class="bi bi-exclamation-triangle-fill"></i> ${b}</span>`
+                        ).join('')}
+                    </div>
+                    ${detection.evidence_path ? 
+                        `<a href="/${detection.evidence_path}" target="_blank" class="upload-btn" style="display: inline-block; margin-top: 10px; padding: 8px 20px; font-size: 14px;">
+                            <i class="bi bi-eye-fill"></i> View Evidence
+                        </a>` : ''
+                    }
+                </div>
+            `).join('');
+        } else {
+            detectionsList.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle"></i><p>No suspicious activities detected</p></div>';
+        }
+
+        // Scroll to results
+        resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // 3D card tilt effect
+    const uploadCard = document.querySelector('.upload-card');
+    uploadCard.addEventListener('mousemove', (e) => {
+        const rect = uploadCard.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 20;
+        const rotateY = (centerX - x) / 20;
+        
+        uploadCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+    });
+    
+    uploadCard.addEventListener('mouseleave', () => {
+        uploadCard.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0)';
+    });
+</script>
+{% endblock %}

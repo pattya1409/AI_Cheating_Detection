@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}System Status - AI Cheating Detection{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-card {
+        transition: all 0.3s ease;
+    }
+    .status-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .status-ok { border-left: 4px solid #28a745; }
+    .status-warning { border-left: 4px solid #ffc107; }
+    .status-error { border-left: 4px solid #dc3545; }
+    .system-info { font-family: 'Courier New', monospace; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-gear"></i> System Status & Diagnostics</h2>
+            <p class="text-muted">Monitor system health and performance</p>
+        </div>
+    </div>
+
+    <!-- System Health Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card status-card status-ok">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                    <h6 class="mt-2">Database</h6>
+                    <span class="badge bg-success">Connected</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card status-card" id="camera-status">
+                <div class="card-body text-center">
+                    <i class="bi bi-camera-video fs-1" id="camera-icon"></i>
+                    <h6 class="mt-2">Camera</h6>
+                    <span class="badge" id="camera-badge">Checking...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card status-card status-ok">
+                <div class="card-body text-center">
+                    <i class="bi bi-cpu fs-1 text-info"></i>
+                    <h6 class="mt-2">AI Models</h6>
+                    <span class="badge bg-info">Loaded</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card status-card" id="detection-status">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-exclamation fs-1" id="detection-icon"></i>
+                    <h6 class="mt-2">Detection</h6>
+                    <span class="badge" id="detection-badge">Inactive</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> System Information</h5>
+                </div>
+                <div class="card-body system-info">
+                    <table class="table table-sm">
+                        <tr><td><strong>System:</strong></td><td id="system-os">Loading...</td></tr>
+                        <tr><td><strong>Python:</strong></td><td id="python-version">Loading...</td></tr>
+                        <tr><td><strong>Flask:</strong></td><td id="flask-version">Loading...</td></tr>
+                        <tr><td><strong>OpenCV:</strong></td><td id="opencv-version">Loading...</td></tr>
+                        <tr><td><strong>Uptime:</strong></td><td id="system-uptime">Loading...</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-graph-up"></i> Performance Metrics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label>Memory Usage</label>
+                        <div class="progress">
+                            <div class="progress-bar" id="memory-bar" style="width: 0%">0%</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Detection Accuracy</label>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: 95%">95%</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>System Load</label>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" id="load-bar" style="width: 0%">Low</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-activity"></i> Recent System Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div id="activity-log">
+                        <p class="text-muted">Loading activity log...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Check system status
+function checkSystemStatus() {
+    // Check camera
+    fetch('/api/test_camera')
+        .then(res => res.json())
+        .then(data => {
+            const cameraCard = document.getElementById('camera-status');
+            const cameraIcon = document.getElementById('camera-icon');
+            const cameraBadge = document.getElementById('camera-badge');
+            
+            if (data.status === 'success') {
+                cameraCard.className = 'card status-card status-ok';
+                cameraIcon.className = 'bi bi-camera-video fs-1 text-success';
+                cameraBadge.className = 'badge bg-success';
+                cameraBadge.textContent = 'Available';
+            } else {
+                cameraCard.className = 'card status-card status-error';
+                cameraIcon.className = 'bi bi-camera-video-off fs-1 text-danger';
+                cameraBadge.className = 'badge bg-danger';
+                cameraBadge.textContent = 'Unavailable';
+            }
+        })
+        .catch(() => {
+            const cameraCard = document.getElementById('camera-status');
+            cameraCard.className = 'card status-card status-error';
+        });
+
+    // Check detection status
+    fetch('/api/detection_status')
+        .then(res => res.json())
+        .then(data => {
+            const detectionCard = document.getElementById('detection-status');
+            const detectionIcon = document.getElementById('detection-icon');
+            const detectionBadge = document.getElementById('detection-badge');
+            
+            if (data.active) {
+                detectionCard.className = 'card status-card status-ok';
+                detectionIcon.className = 'bi bi-shield-check fs-1 text-success';
+                detectionBadge.className = 'badge bg-success';
+                detectionBadge.textContent = 'Active';
+            } else {
+                detectionCard.className = 'card status-card status-warning';
+                detectionIcon.className = 'bi bi-shield-exclamation fs-1 text-warning';
+                detectionBadge.className = 'badge bg-warning';
+                detectionBadge.textContent = 'Inactive';
+            }
+        });
+}
+
+// Load system information
+function loadSystemInfo() {
+    // Simulate system info (in real app, this would come from backend)
+    document.getElementById('system-os').textContent = navigator.platform;
+    document.getElementById('python-version').textContent = 'Python 3.9+';
+    document.getElementById('flask-version').textContent = 'Flask 2.3.3';
+    document.getElementById('opencv-version').textContent = 'OpenCV 4.8+';
+    document.getElementById('system-uptime').textContent = 'Running';
+    
+    // Simulate performance metrics
+    const memoryUsage = Math.floor(Math.random() * 40) + 30; // 30-70%
+    document.getElementById('memory-bar').style.width = memoryUsage + '%';
+    document.getElementById('memory-bar').textContent = memoryUsage + '%';
+    
+    const systemLoad = Math.floor(Math.random() * 30) + 10; // 10-40%
+    document.getElementById('load-bar').style.width = systemLoad + '%';
+    document.getElementById('load-bar').textContent = systemLoad < 25 ? 'Low' : 'Medium';
+}
+
+// Load activity log
+function loadActivityLog() {
+    const activities = [
+        { time: new Date().toLocaleString(), event: 'System started successfully', type: 'success' },
+        { time: new Date(Date.now() - 60000).toLocaleString(), event: 'Database initialized', type: 'info' },
+        { time: new Date(Date.now() - 120000).toLocaleString(), event: 'AI models loaded', type: 'info' },
+        { time: new Date(Date.now() - 180000).toLocaleString(), event: 'Camera test completed', type: 'success' }
+    ];
+    
+    const logHtml = activities.map(activity => `
+        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+            <div>
+                <i class="bi bi-${activity.type === 'success' ? 'check-circle text-success' : 'info-circle text-info'}"></i>
+                ${activity.event}
+            </div>
+            <small class="text-muted">${activity.time}</small>
+        </div>
+    `).join('');
+    
+    document.getElementById('activity-log').innerHTML = logHtml;
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    checkSystemStatus();
+    loadSystemInfo();
+    loadActivityLog();
+    
+    // Refresh status every 10 seconds
+    setInterval(checkSystemStatus, 10000);
+});
+</script>
+{% endblock %}

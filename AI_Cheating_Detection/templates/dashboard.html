@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Cheating Detection{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Dashboard Container */
+    .dashboard-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: calc(100vh - 56px);
+        padding: 30px 20px;
+    }
+
+    /* Stat Cards - Simple & Attractive */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-icon.primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .stat-icon.success {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+    }
+
+    .stat-icon.danger {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+    }
+
+    .stat-icon.warning {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    .stat-title {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        color: white;
+        font-size: 42px;
+        font-weight: 700;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-block;
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 18px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+        box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        box-shadow: 0 5px 20px rgba(238, 9, 121, 0.4);
+    }
+
+    /* Info Cards */
+    .info-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+    }
+
+    .info-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .info-card-title {
+        color: white;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card-title i {
+        font-size: 28px;
+    }
+
+    /* Progress Bar */
+    .custom-progress {
+        height: 30px;
+        border-radius: 15px;
+        background: rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) inset;
+    }
+
+    .custom-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #ee0979, #ff6a00);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+        transition: width 0.3s ease;
+    }
+
+    /* Alert List */
+    .alert-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .alert-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .alert-list::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .alert-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    .alert-item {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .alert-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+    }
+
+    .alert-timestamp {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .behavior-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 5px 15px rgba(238, 9, 121, 0.4);
+    }
+
+    .view-btn {
+        padding: 8px 20px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .view-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+    }
+
+    /* Chart Container */
+    .chart-container {
+        position: relative;
+        height: 300px;
+        padding: 20px;
+    }
+
+    /* Header */
+    .dashboard-header {
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .dashboard-title {
+        color: white;
+        font-size: 42px;
+        font-weight: 700;
+        text-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 10px;
+    }
+
+    .dashboard-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 18px;
+        font-weight: 400;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-title {
+            font-size: 32px;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="container-fluid">
+
+        <!-- HEADER -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="bi bi-speedometer2"></i> AI Dashboard
+            </h1>
+            <p class="dashboard-subtitle">Real-time Exam Monitoring & Analytics</p>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-icon primary">
+                        <i class="bi bi-eye-fill"></i>
+                    </div>
+                    <div class="stat-title">Total Detections</div>
+                    <div class="stat-value" id="total-detections">{{ stats.total_detections }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-icon success">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div class="stat-title">Active Days</div>
+                    <div class="stat-value" id="active-days">{{ stats.active_days }}</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <div class="stat-icon danger">
+                        <i class="bi bi-shield-fill-exclamation"></i>
+                    </div>
+                    <div class="stat-title">System Status</div>
+                    <div class="stat-value" style="font-size: 24px; margin-top: 10px;">
+                        {% if monitoring_status %}
+                            <span class="status-badge status-active">
+                                <i class="bi bi-check-circle-fill"></i> ACTIVE
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="bi bi-x-circle-fill"></i> INACTIVE
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFO CARDS ROW -->
+        <div class="row g-4 mb-4">
+            <!-- RISK LEVEL -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="bi bi-graph-up-arrow"></i> Risk Level Analysis
+                    </h5>
+                    <div class="custom-progress">
+                        <div class="custom-progress-bar" style="width: 45%;">
+                            45% HIGH RISK
+                        </div>
+                    </div>
+                    <p style="color: rgba(255,255,255,0.8); margin-top: 15px; font-size: 14px;">
+                        <i class="bi bi-info-circle-fill"></i> Live calculated cheating probability
+                    </p>
+                </div>
+            </div>
+
+            <!-- CHART -->
+            <div class="col-md-6">
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="bi bi-bar-chart-fill"></i> Detection Summary
+                    </h5>
+                    <div class="chart-container">
+                        <canvas id="alertChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECENT ALERTS -->
+        <div class="row">
+            <div class="col-12">
+                <div class="info-card">
+                    <h5 class="info-card-title">
+                        <i class="bi bi-bell-fill"></i> Recent Alerts
+                    </h5>
+                    
+                    {% if alerts %}
+                        <div class="alert-list">
+                            {% for alert in alerts %}
+                            <div class="alert-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="alert-timestamp">
+                                            <i class="bi bi-clock-fill"></i> {{ alert.timestamp }}
+                                        </div>
+                                        <div>
+                                            {% for behavior in alert.behaviors.split(', ') %}
+                                                <span class="behavior-badge">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i> {{ behavior }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% if alert.evidence_path %}
+                                    <a href="/{{ alert.evidence_path }}" target="_blank" class="view-btn">
+                                        <i class="bi bi-eye-fill"></i> View
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p style="font-size: 18px; margin-top: 15px;">No alerts detected yet</p>
+                            <p style="font-size: 14px;">System is monitoring and will display alerts here</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Chart Configuration
+    const ctx = document.getElementById('alertChart');
+    const gradient1 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+    gradient1.addColorStop(0, 'rgba(238, 9, 121, 0.8)');
+    gradient1.addColorStop(1, 'rgba(255, 106, 0, 0.8)');
+
+    const gradient2 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+    gradient2.addColorStop(0, 'rgba(255, 193, 7, 0.8)');
+    gradient2.addColorStop(1, 'rgba(255, 152, 0, 0.8)');
+
+    const gradient3 = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+    gradient3.addColorStop(0, 'rgba(102, 126, 234, 0.8)');
+    gradient3.addColorStop(1, 'rgba(118, 75, 162, 0.8)');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Mobile Phone', 'Talking', 'Multiple Faces'],
+            datasets: [{
+                label: 'Alert Count',
+                data: [5, 3, 2],
+                backgroundColor: [gradient1, gradient2, gradient3],
+                borderRadius: 10,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 2000,
+                easing: 'easeInOutQuart'
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.8)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'rgba(255, 255, 255, 0.8)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Auto-refresh statistics
+    function updateStats() {
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(data => {
+                const totalDetectionsEl = document.getElementById('total-detections');
+                const activeDaysEl = document.getElementById('active-days');
+                
+                if (totalDetectionsEl && totalDetectionsEl.textContent !== data.total_detections.toString()) {
+                    // Animate number change
+                    totalDetectionsEl.style.animation = 'none';
+                    setTimeout(() => {
+                        totalDetectionsEl.textContent = data.total_detections;
+                        totalDetectionsEl.style.animation = 'numberGlow 2s ease-in-out infinite';
+                    }, 10);
+                }
+                
+                if (activeDaysEl) {
+                    activeDaysEl.textContent = data.active_days;
+                }
+            })
+            .catch(error => console.error('Error updating stats:', error));
+    }
+
+    // Update every 3 seconds
+    setInterval(updateStats, 3000);
+</script>
+{% endblock %}

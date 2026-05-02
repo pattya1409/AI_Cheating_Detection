@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+
+{% block title %}
+Live Monitor - AI Cheating Detection System
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .monitor-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: calc(100vh - 56px);
+        padding: 30px 20px;
+    }
+
+    .page-title {
+        color: white;
+        font-size: 42px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 15px;
+        text-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    /* Video Card */
+    .video-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+    }
+
+    .video-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header-custom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .card-title {
+        color: white;
+        font-size: 28px;
+        font-weight: 700;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-title i {
+        font-size: 32px;
+    }
+
+    /* Control Buttons */
+    .control-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-3d {
+        padding: 12px 25px;
+        border-radius: 20px;
+        border: none;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-3d:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-3d:active {
+        transform: translateY(0);
+    }
+
+    .btn-info-3d {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-info-3d:hover {
+        box-shadow: 0 12px 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-success-3d {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+        box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
+    }
+
+    .btn-success-3d:hover {
+        box-shadow: 0 12px 30px rgba(17, 153, 142, 0.6);
+    }
+
+    .btn-danger-3d {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        box-shadow: 0 8px 25px rgba(238, 9, 121, 0.4);
+    }
+
+    .btn-danger-3d:hover {
+        box-shadow: 0 12px 30px rgba(238, 9, 121, 0.6);
+    }
+
+    .btn-3d:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+
+    /* Video Container */
+    .video-container {
+        position: relative;
+        background: #000;
+        border-radius: 20px;
+        overflow: hidden;
+        min-height: 480px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5) inset;
+    }
+
+    .video-placeholder {
+        width: 100%;
+        height: 480px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: linear-gradient(135deg, #1f2933, #2d3748);
+        flex-direction: column;
+    }
+
+    .video-placeholder i {
+        font-size: 80px;
+        margin-bottom: 20px;
+        opacity: 0.7;
+    }
+
+    .video-placeholder p {
+        font-size: 20px;
+        font-weight: 600;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #videoStream {
+        width: 100%;
+        height: auto;
+        display: none;
+        border-radius: 20px;
+    }
+
+    /* Info Cards */
+    .info-card-3d {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 25px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        margin-bottom: 30px;
+        height: 100%;
+    }
+
+    .info-card-3d:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+    }
+
+    .info-card-title {
+        color: white;
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card-title i {
+        font-size: 28px;
+    }
+
+    .status-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        margin-bottom: 15px;
+    }
+
+    .status-value {
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 10px 25px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 18px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+        box-shadow: 0 10px 30px rgba(17, 153, 142, 0.5);
+    }
+
+    .status-inactive {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        box-shadow: 0 10px 30px rgba(238, 9, 121, 0.5);
+    }
+
+    /* Alert Panel */
+    .alert-panel {
+        max-height: 480px;
+        overflow-y: auto;
+    }
+
+    .alert-panel::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .alert-panel::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+
+    .alert-panel::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+
+    .alert-item {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #ee0979;
+        transition: all 0.3s ease;
+        animation: alertSlide 0.5s ease;
+    }
+
+    @keyframes alertSlide {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .alert-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(10px);
+    }
+
+    .alert-timestamp {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .behavior-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 5px 15px rgba(238, 9, 121, 0.4);
+    }
+
+    .view-btn {
+        padding: 8px 20px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .view-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .empty-state i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 32px;
+        }
+        
+        .control-buttons {
+            width: 100%;
+        }
+        
+        .btn-3d {
+            flex: 1;
+            min-width: 120px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="monitor-container">
+    <div class="container-fluid">
+
+        <!-- HEADER -->
+        <h1 class="page-title">
+            <i class="bi bi-camera-video-fill"></i> Live Monitor
+        </h1>
+        <p class="page-subtitle">Real-time exam monitoring with AI detection</p>
+
+        <!-- CAMERA CARD -->
+        <div class="video-card">
+            <div class="card-header-custom">
+                <h5 class="card-title">
+                    <i class="bi bi-broadcast"></i> Camera Feed
+                </h5>
+                <div class="control-buttons">
+                    <button class="btn-3d btn-info-3d" onclick="testCamera()">
+                        <i class="bi bi-camera-fill"></i> Test Camera
+                    </button>
+                    <button id="startBtn" class="btn-3d btn-success-3d" onclick="startMonitoring()">
+                        <i class="bi bi-play-fill"></i> Start
+                    </button>
+                    <button id="stopBtn" class="btn-3d btn-danger-3d" onclick="stopMonitoring()" disabled>
+                        <i class="bi bi-stop-fill"></i> Stop
+                    </button>
+                </div>
+            </div>
+
+            <div class="video-container">
+                <div id="videoPlaceholder" class="video-placeholder">
+                    <i class="bi bi-camera-video-off"></i>
+                    <p>Click "Start" to begin monitoring</p>
+                </div>
+
+                <img id="videoStream" src="" alt="Live Camera Feed">
+            </div>
+        </div>
+
+        <!-- STATUS + ALERTS ROW -->
+        <div class="row g-4">
+
+            <!-- STATUS CARD -->
+            <div class="col-md-6">
+                <div class="info-card-3d">
+                    <h5 class="info-card-title">
+                        <i class="bi bi-activity"></i> Detection Status
+                    </h5>
+                    <div class="status-text">
+                        <strong>Current Status:</strong>
+                    </div>
+                    <div class="status-value">
+                        <span id="statusText" class="status-badge status-inactive">
+                            <i class="bi bi-x-circle-fill"></i> INACTIVE
+                        </span>
+                    </div>
+                    <div class="status-text" style="margin-top: 25px;">
+                        <strong>Last Alert:</strong>
+                    </div>
+                    <div class="status-value" style="font-size: 18px;">
+                        <span id="lastAlert" style="color: rgba(255, 255, 255, 0.7);">None</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALERTS CARD -->
+            <div class="col-md-6">
+                <div class="info-card-3d">
+                    <h5 class="info-card-title">
+                        <i class="bi bi-bell-fill"></i> Recent Alerts
+                    </h5>
+                    <div class="alert-panel" id="alertsPanel">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No alerts yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let isMonitoring = false;
+
+    function showMessage(message, type = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2);';
+        
+        // Custom styling based on type
+        if (type === 'success') {
+            alertDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+            alertDiv.style.color = 'white';
+        } else if (type === 'danger') {
+            alertDiv.style.background = 'rgba(238, 9, 121, 0.9)';
+            alertDiv.style.color = 'white';
+        } else if (type === 'info') {
+            alertDiv.style.background = 'rgba(102, 126, 234, 0.9)';
+            alertDiv.style.color = 'white';
+        }
+        
+        alertDiv.innerHTML = `
+            <strong><i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'}-fill"></i> ${message}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    function testCamera() {
+        const btn = event.target;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Testing...';
+        
+        fetch("/api/test_camera")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showMessage(data.message, 'success');
+                } else {
+                    showMessage(data.message, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Camera test error:', error);
+                showMessage("Camera test failed. Please check camera connection.", 'danger');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
+    }
+
+    function startMonitoring() {
+        const startBtn = document.getElementById("startBtn");
+        const originalHTML = startBtn.innerHTML;
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Starting...';
+        
+        fetch("/api/start_detection", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    isMonitoring = true;
+                    
+                    document.getElementById("stopBtn").disabled = false;
+                    
+                    const statusText = document.getElementById("statusText");
+                    statusText.className = "status-badge status-active";
+                    statusText.innerHTML = '<i class="bi bi-check-circle-fill"></i> ACTIVE';
+
+                    document.getElementById("videoPlaceholder").style.display = "none";
+
+                    const video = document.getElementById("videoStream");
+                    video.style.display = "block";
+                    video.src = "/video_feed?" + new Date().getTime();
+
+                    showMessage("Monitoring started successfully!", 'success');
+                } else {
+                    showMessage(data.message || "Failed to start monitoring", 'danger');
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = originalHTML;
+                }
+            })
+            .catch(error => {
+                console.error('Start monitoring error:', error);
+                showMessage("Failed to start monitoring. Please check camera connection.", 'danger');
+                startBtn.disabled = false;
+                startBtn.innerHTML = originalHTML;
+            });
+    }
+
+    function stopMonitoring() {
+        const stopBtn = document.getElementById("stopBtn");
+        const originalHTML = stopBtn.innerHTML;
+        stopBtn.disabled = true;
+        stopBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Stopping...';
+        
+        fetch("/api/stop_detection", { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                isMonitoring = false;
+                
+                const startBtn = document.getElementById("startBtn");
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="bi bi-play-fill"></i> Start';
+                
+                const statusText = document.getElementById("statusText");
+                statusText.className = "status-badge status-inactive";
+                statusText.innerHTML = '<i class="bi bi-x-circle-fill"></i> INACTIVE';
+                
+                document.getElementById("lastAlert").textContent = "None";
+
+                const video = document.getElementById("videoStream");
+                video.src = "";
+                video.style.display = "none";
+
+                document.getElementById("videoPlaceholder").style.display = "flex";
+                
+                showMessage("Monitoring stopped successfully!", 'info');
+            })
+            .catch(error => {
+                console.error('Stop monitoring error:', error);
+                showMessage("Error stopping monitoring", 'danger');
+            })
+            .finally(() => {
+                stopBtn.disabled = false;
+                stopBtn.innerHTML = originalHTML;
+            });
+    }
+
+    function updateStatus() {
+        if (!isMonitoring) return;
+        
+        fetch("/api/detection_status")
+            .then(res => {
+                if (!res.ok) throw new Error('Status check failed');
+                return res.json();
+            })
+            .then(data => {
+                if (data.latest_alert && data.latest_alert.timestamp) {
+                    const alertTime = new Date(data.latest_alert.timestamp).toLocaleString();
+                    document.getElementById("lastAlert").textContent = alertTime;
+
+                    const panel = document.getElementById("alertsPanel");
+                    const alertHtml = `
+                        <div class="alert-item">
+                            <div class="alert-timestamp">
+                                <i class="bi bi-clock-fill"></i> ${alertTime}
+                            </div>
+                            <div>
+                                ${data.latest_alert.behaviors.map(b => 
+                                    `<span class="behavior-badge"><i class="bi bi-exclamation-triangle-fill"></i> ${b}</span>`
+                                ).join("")}
+                            </div>
+                            ${data.latest_alert.evidence_path ? 
+                                `<a href="/${data.latest_alert.evidence_path}" target="_blank" class="view-btn" style="margin-top: 10px;">
+                                    <i class="bi bi-eye-fill"></i> View Evidence
+                                </a>` : ''
+                            }
+                        </div>
+                    `;
+                    
+                    if (panel.innerHTML.includes('No alerts yet')) {
+                        panel.innerHTML = alertHtml;
+                    } else {
+                        panel.innerHTML = alertHtml + panel.innerHTML;
+                    }
+                    
+                    const alerts = panel.querySelectorAll('.alert-item');
+                    if (alerts.length > 5) {
+                        for (let i = 5; i < alerts.length; i++) {
+                            alerts[i].remove();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Status update error:', error);
+            });
+    }
+
+    setInterval(updateStatus, 3000);
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && isMonitoring) {
+            console.log('Page hidden, reducing update frequency');
+        } else if (!document.hidden && isMonitoring) {
+            console.log('Page visible, resuming normal updates');
+        }
+    });
+
+    window.addEventListener('beforeunload', function() {
+        if (isMonitoring) {
+            navigator.sendBeacon('/api/stop_detection', new FormData());
+        }
+    });
+</script>
+{% endblock %}
