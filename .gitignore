@@ -1,0 +1,15 @@
+﻿.vscode/
+__pycache__/
+venv/
+AI_Cheating_Detection/venv/
+AI_Cheating_Detection/static/uploads/
+AI_Cheating_Detection/cheating_detection.db
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+*.sqlite3
+.env
+.env.local
+.DS_Store
+Thumbs.db
